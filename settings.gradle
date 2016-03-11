@@ -1,0 +1,2 @@
+include ':app', ':android-iconify', ':android-iconify-fontawesome'
+include ':tess-two'
