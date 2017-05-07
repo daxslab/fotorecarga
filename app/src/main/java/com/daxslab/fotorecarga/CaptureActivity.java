@@ -18,9 +18,6 @@
 
 package com.daxslab.fotorecarga;
 
-import java.io.File;
-import java.io.IOException;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -32,7 +29,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
@@ -40,7 +36,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -49,27 +44,29 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.googlecode.tesseract.android.TessBaseAPI;
-
 import com.daxslab.fotorecarga.camera.CameraManager;
+import com.googlecode.tesseract.android.TessBaseAPI;
 import com.joanzapata.iconify.IconDrawable;
 import com.joanzapata.iconify.Iconify;
 import com.joanzapata.iconify.fonts.FontAwesomeModule;
+
+import java.io.File;
+import java.io.IOException;
 
 
 /**
  * This activity opens the camera and does the actual scanning on a background thread. It draws a
  * viewfinder to help the user place the text correctly, shows feedback as the image processing
  * is happening, and then overlays the results when a scan is successful.
- * 
+ *
  * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing/
  */
 public final class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
   private static final String TAG = CaptureActivity.class.getSimpleName();
-  
+
   // Note: These constants will be overridden by any default values defined in preferences.xml.
-  
+
   /** ISO 639-3 language code indicating the default recognition language. */
   public static final String DEFAULT_SOURCE_LANGUAGE_CODE = "eng";
 
@@ -77,14 +74,17 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
   private static final boolean CONTINUOUS_DISPLAY_RECOGNIZED_TEXT = true;
 
   // Context menu  
-  private static final int ABOUT_ID = Menu.FIRST;  
+//  private static final int ABOUT_ID = Menu.FIRST;
+//
+//  private static final int APP_PERMISSIONS_CAMERA = 123;
+//  private static final int APP_PERMISSIONS_CALL_PHONE = 456;
 
   private CameraManager cameraManager;
   private CaptureActivityHandler handler;
   private ViewfinderView viewfinderView;
   private SurfaceView surfaceView;
   private SurfaceHolder surfaceHolder;
-  private TextView ocrResultView;  
+  private TextView ocrResultView;
   private FloatingActionButton aboutButton;
   private TextView imeiTextView;
   private View cameraButtonView;
@@ -93,7 +93,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
   private OcrResult lastResult;
   private Bitmap lastBitmap;
   private boolean hasSurface;
-//  private BeepManager beepManager;
+  //  private BeepManager beepManager;
   private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
   private String sourceLanguageCodeOcr = "eng"; // ISO 639-3 language code
   private int pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_AUTO_OSD;
@@ -115,7 +115,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
   TessBaseAPI getBaseApi() {
     return baseApi;
   }
-  
+
   CameraManager getCameraManager() {
     return cameraManager;
   }
@@ -137,7 +137,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     viewfinderView = (ViewfinderView) findViewById(R.id.viewfinder_view);
     resultView = findViewById(R.id.result_view);
 
-    aboutButton = (FloatingActionButton)findViewById(R.id.fab_button_about);
+    aboutButton = (FloatingActionButton) findViewById(R.id.fab_button_about);
     aboutButton.setImageDrawable(new IconDrawable(this, "fa-info-circle").sizeDp(24));
     aboutButton.setOnClickListener(onAboutButtonClick(this));
 
@@ -151,17 +151,25 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     viewfinderView.setCameraManager(cameraManager);
 
     isEngineReady = false;
+    // TODO: new api call permissions
+//    // check call permissions (for new apis)
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//      int callPermissionCheck = this.checkSelfPermission(Manifest.permission.CALL_PHONE);
+//      if (callPermissionCheck == PackageManager.PERMISSION_DENIED) {
+//        this.requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, APP_PERMISSIONS_CALL_PHONE);
+//      }
+//    }
+
   }
 
   @Override
   protected void onResume() {
     super.onResume();
     resetStatusView();
-    
-    int previousOcrEngineMode = ocrEngineMode;
-    
+
+
     retrievePreferences();
-    
+
     // Set up the camera preview surface.
     surfaceView = (SurfaceView) findViewById(R.id.preview_view);
     surfaceHolder = surfaceView.getHolder();
@@ -169,35 +177,100 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
       surfaceHolder.addCallback(this);
       surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
-    
-    // Comment out the following block to test non-OCR functions without an SD card
-    
+
+    int previousOcrEngineMode = ocrEngineMode;
+
     // Do OCR engine initialization, if necessary
     boolean doNewInit = (baseApi == null) || ocrEngineMode != previousOcrEngineMode;
-    if (doNewInit) {      
+    Log.d(TAG, "new init?: "+doNewInit);
+    if (doNewInit) {
       // Initialize the OCR engine
       File storageDirectory = getStorageDirectory();
       if (storageDirectory != null) {
         initOcrEngine(storageDirectory, sourceLanguageCodeOcr);
+        Log.d(TAG, "Initialized OCR engine");
       }
     } else {
       // We already have the engine initialized, so just start the camera.
       resumeOCR();
     }
+
+    // TODO: new api camera permissions
+//    // check camera permissions (for new apis)
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//      Log.d(TAG, "is neew permissions api");
+//      int cameraPermissionCheck = this.checkSelfPermission(Manifest.permission.CAMERA);
+//      Log.d(TAG, "camera permission: "+cameraPermissionCheck);
+//      if (cameraPermissionCheck == PackageManager.PERMISSION_DENIED) {
+//        this.requestPermissions(new String[]{Manifest.permission.CAMERA}, APP_PERMISSIONS_CAMERA);
+//      } else {
+//        handleOCR();
+//      }
+//
+//    } else {
+//      handleOCR();
+//    }
+
   }
-  
-  /** 
+
+//  @Override
+//  public void onRequestPermissionsResult(int requestCode,
+//                                         String permissions[], int[] grantResults) {
+//    switch (requestCode) {
+//      case APP_PERMISSIONS_CAMERA: {
+//        Log.d(TAG, "APP_PERMISSIONS_CAMERA case");
+//        // If request is cancelled, the result arrays are empty.
+//        if (grantResults.length > 0
+//                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//          Log.d(TAG, "APP_PERMISSIONS_CAMERA granted");
+//          handleOCR();
+//
+//        } else {
+//          Context context = getApplicationContext();
+//          CharSequence text = "Error de permisos";
+//          int duration = Toast.LENGTH_SHORT;
+//          Toast toast = Toast.makeText(context, text, duration);
+//          toast.show();
+//        }
+//        return;
+//      }
+//
+//    }
+//  }
+
+//  public void handleOCR() {
+//    Log.d(TAG, "handleOCR()");
+//    int previousOcrEngineMode = ocrEngineMode;
+//
+//    // Do OCR engine initialization, if necessary
+//    boolean doNewInit = (baseApi == null) || ocrEngineMode != previousOcrEngineMode;
+//    Log.d(TAG, "new init?: "+doNewInit);
+//    if (doNewInit) {
+//      // Initialize the OCR engine
+//      File storageDirectory = getStorageDirectory();
+//      if (storageDirectory != null) {
+//        initOcrEngine(storageDirectory, sourceLanguageCodeOcr);
+//        Log.d(TAG, "Initialized OCR engine");
+//      }
+//    } else {
+//      // We already have the engine initialized, so just start the camera.
+//      resumeOCR();
+//    }
+//  }
+
+
+  /**
    * Method to start or restart recognition after the OCR engine has been initialized,
    * or after the app regains focus. Sets state related settings and OCR engine parameters,
    * and requests camera initialization.
    */
   void resumeOCR() {
     Log.d(TAG, "resumeOCR()");
-    
+
     // This method is called when Tesseract has already been successfully initialized, so set 
     // isEngineReady = true here.
     isEngineReady = true;
-    
+
     isPaused = false;
 
     if (handler != null) {
@@ -210,29 +283,29 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     if (hasSurface) {
       // The activity was paused but not stopped, so the surface still exists. Therefore
       // surfaceCreated() won't be called, so init the camera here.
+      Log.d(TAG, "initializing camera");
       initCamera(surfaceHolder);
     }
   }
-  
 
-  
+
   /** Called to resume recognition after translation in continuous mode. */
   @SuppressWarnings("unused")
   void resumeContinuousDecoding() {
     isPaused = false;
     resetStatusView();
     DecodeHandler.resetDecodeState();
-    handler.resetState();    
+    handler.resetState();
   }
 
   @Override
   public void surfaceCreated(SurfaceHolder holder) {
     Log.d(TAG, "surfaceCreated()");
-    
+
     if (holder == null) {
       Log.e(TAG, "surfaceCreated gave us a null surface");
     }
-    
+
     // Only initialize the camera if the OCR engine is ready to go.
     if (!hasSurface && isEngineReady) {
       Log.d(TAG, "surfaceCreated(): calling initCamera()...");
@@ -240,7 +313,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     }
     hasSurface = true;
   }
-  
+
   /** Initializes the camera and starts the handler to begin previewing. */
   private void initCamera(SurfaceHolder surfaceHolder) {
     Log.d(TAG, "initCamera()");
@@ -251,25 +324,27 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
       // Open and initialize the camera
       cameraManager.openDriver(surfaceHolder);
-      
+
       // Creating the handler starts the preview, which can also throw a RuntimeException.
       handler = new CaptureActivityHandler(this, cameraManager, isContinuousModeActive);
-      
+
     } catch (IOException ioe) {
+      ioe.printStackTrace();
       showErrorMessage("Error", "Could not initialize camera. Please try restarting device.");
     } catch (RuntimeException e) {
       // Barcode Scanner has seen crashes in the wild of this variety:
       // java.?lang.?RuntimeException: Fail to connect to camera service
+      e.printStackTrace();
       showErrorMessage("Error", "Could not initialize camera. Please try restarting device.");
-    }   
+    }
   }
-  
+
   @Override
   protected void onPause() {
     if (handler != null) {
       handler.quitSynchronously();
     }
-    
+
     // Stop using the camera, to avoid conflicting with other camera-based apps
     cameraManager.closeDriver();
 
@@ -296,8 +371,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
   }
 
 
-
-  public View.OnClickListener onAboutButtonClick(final Activity activity){
+  public View.OnClickListener onAboutButtonClick(final Activity activity) {
     View.OnClickListener listener = new View.OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -321,58 +395,18 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
   /** Finds the proper location on the SD card where we can save files. */
   private File getStorageDirectory() {
 
-    String state = null;
-    try {
-      state = Environment.getExternalStorageState();
-    } catch (RuntimeException e) {
-      Log.e(TAG, "Is the SD card visible?", e);
-      showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable.");
-    }
-    
-    if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-
-      // We can read and write the media
-      //    	if (Integer.valueOf(android.os.Build.VERSION.SDK_INT) > 7) {
-      // For Android 2.2 and above
-      
-      try {
-        return getExternalFilesDir(Environment.MEDIA_MOUNTED);
-      } catch (NullPointerException e) {
-        // We get an error here if the SD card is visible, but full
-        Log.e(TAG, "External storage is unavailable");
-        showErrorMessage("Error", "Required external storage (such as an SD card) is full or unavailable.");
-      }
-      
-      //        } else {
-      //          // For Android 2.1 and below, explicitly give the path as, for example,
-      //          // "/mnt/sdcard/Android/data/com.daxslab.fotorecarga/files/"
-      //          return new File(Environment.getExternalStorageDirectory().toString() + File.separator + 
-      //                  "Android" + File.separator + "data" + File.separator + getPackageName() + 
-      //                  File.separator + "files" + File.separator);
-      //        }
-    
-    } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-    	// We can only read the media
-    	Log.e(TAG, "External storage is read-only");
-      showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable for data storage.");
-    } else {
-    	// Something else is wrong. It may be one of many other states, but all we need
-      // to know is we can neither read nor write
-    	Log.e(TAG, "External storage is unavailable");
-    	showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable or corrupted.");
-    }
-    return null;
+    return getFilesDir();
   }
 
   /**
    * Requests initialization of the OCR engine with the given parameters.
-   * 
+   *
    * @param storageRoot Path to location of the tessdata directory to use
    * @param languageCode Three-letter ISO 639-3 language code for OCR
    */
   private void initOcrEngine(File storageRoot, String languageCode) {
     isEngineReady = false;
-    
+
     // Set up the dialog box for the thermometer-style download progress indicator
     if (dialog != null) {
       dialog.dismiss();
@@ -388,67 +422,77 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     indeterminateDialog.setMessage(getString(R.string.ocr_engine_init_dialog_body));
     indeterminateDialog.setCancelable(false);
     indeterminateDialog.show();
-    
+
     if (handler != null) {
-      handler.quitSynchronously();     
-    }    
-    
+      handler.quitSynchronously();
+    }
+
     // Start AsyncTask to install language data and init OCR
     baseApi = new TessBaseAPI();
     new OcrInitAsyncTask(this, baseApi, dialog, indeterminateDialog, languageCode, ocrEngineMode)
-      .execute(storageRoot.toString());
+            .execute(storageRoot.toString());
   }
-  
-  /** 
+
+  /**
    * Remove not numeric chars from ocrResult text, if there is no numbers 
    * or the length is not 16 (the etecsa code length) ocrResult text = null. 
    */
-  OcrResult setOnlyNumbers(OcrResult ocrResult){
-	String codeString = ocrResult.getText();
-		
-	String codeNumber = "";
-	for (int i = 0; i < codeString.length(); i++) {
-		char codeChar = codeString.charAt(i);
-		if (codeChar == '0' || codeChar == '1' || codeChar == '2' || codeChar == '3' || 
-				codeChar == '4' || codeChar == '5' || codeChar == '6' || codeChar == '7' || 
-				codeChar == '8' || codeChar == '9') {
-			codeNumber += codeChar;
-		}
-	}
-	if (codeNumber.equals("") || codeNumber.length() != 16)
-		ocrResult.setText(null);
-	else
-		ocrResult.setText(codeNumber);
-	
-	return ocrResult;
+  OcrResult setOnlyNumbers(OcrResult ocrResult) {
+    String codeString = ocrResult.getText();
+
+    String codeNumber = "";
+    for (int i = 0; i < codeString.length(); i++) {
+      char codeChar = codeString.charAt(i);
+      if (codeChar == '0' || codeChar == '1' || codeChar == '2' || codeChar == '3' ||
+              codeChar == '4' || codeChar == '5' || codeChar == '6' || codeChar == '7' ||
+              codeChar == '8' || codeChar == '9') {
+        codeNumber += codeChar;
+      }
+    }
+    if (codeNumber.equals("") || codeNumber.length() != 16)
+      ocrResult.setText(null);
+    else
+      ocrResult.setText(codeNumber);
+
+    return ocrResult;
   }
-  
+
   /**
    * Displays information relating to the results of a successful real-time OCR request.
-   * 
+   *
    * @param ocrResult Object representing successful OCR results
    */
   void handleOcrContinuousDecode(OcrResult ocrResult) {
-	  ocrResult = setOnlyNumbers(ocrResult);
-	  lastResult = ocrResult;
-    
+    ocrResult = setOnlyNumbers(ocrResult);
+    lastResult = ocrResult;
+
     // Send an OcrResultText object to the ViewfinderView for text rendering
-    viewfinderView.addResultText(new OcrResultText(ocrResult.getText(), 
-                                                   ocrResult.getWordConfidences(),
-                                                   ocrResult.getMeanConfidence(),
-                                                   ocrResult.getBitmapDimensions(),
-                                                   ocrResult.getRegionBoundingBoxes(),
-                                                   ocrResult.getTextlineBoundingBoxes(),
-                                                   ocrResult.getStripBoundingBoxes(),
-                                                   ocrResult.getWordBoundingBoxes(),
-                                                   ocrResult.getCharacterBoundingBoxes()));
+    viewfinderView.addResultText(new OcrResultText(ocrResult.getText(),
+            ocrResult.getWordConfidences(),
+            ocrResult.getMeanConfidence(),
+            ocrResult.getBitmapDimensions(),
+            ocrResult.getRegionBoundingBoxes(),
+            ocrResult.getTextlineBoundingBoxes(),
+            ocrResult.getStripBoundingBoxes(),
+            ocrResult.getWordBoundingBoxes(),
+            ocrResult.getCharacterBoundingBoxes()));
 
     ocrResult.getMeanConfidence();
-    
+
     String code = lastResult.getText();
-    
+
     if (CONTINUOUS_DISPLAY_RECOGNIZED_TEXT && code.length() == 16) {
       String encodedHash = Uri.encode("#");
+
+      // TODO: new api call permissions check
+//      if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+//        Context context = getApplicationContext();
+//        CharSequence text = "No se han otorgado permisos para realizar la llamada";
+//        int duration = Toast.LENGTH_SHORT;
+//        Toast toast = Toast.makeText(context, text, duration);
+//        toast.show();
+//        return;
+//      }
       startActivity(new Intent(Intent.ACTION_CALL, Uri.parse("tel:*662*" + lastResult.getText() + encodedHash)));
 //      startActivity(new Intent(Intent.ACTION_CALL, Uri.parse("tel:*222" + encodedHash)));
 

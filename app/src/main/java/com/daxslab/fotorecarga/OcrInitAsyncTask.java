@@ -159,10 +159,10 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> {
 
     // Initializlang
     try {
-      if (baseApi.init(tessdataDir.getCanonicalPath(), languageCode, ocrEngineMode)) {
+      if (baseApi.init(destinationDirBase, languageCode, ocrEngineMode)) {
         return true;
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return false;
@@ -204,9 +204,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> {
     // http://code.google.com/p/tesseract-ocr/downloads/list
     if (!destinationFile.exists()) {
       try {
-        Log.e("AKAK", destinationFile.getPath() );
-        Log.e("AKAK", destinationFile.getPath() );
-
           AssetManager assetManager = context.getAssets();
           InputStream in = assetManager.open("tessdata/" + languageCode + ".traineddata");
 
