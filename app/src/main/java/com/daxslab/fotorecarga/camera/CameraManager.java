@@ -41,6 +41,7 @@ import java.io.IOException;
  * @author dswitkin@google.com (Daniel Switkin)
  * @edited-by ccesar@daxslab.com (Carlos Cesar Caballero)
  */
+@SuppressWarnings("deprecation") // camera APIs
 public final class CameraManager {
 
   private static final String TAG = CameraManager.class.getSimpleName();
@@ -226,6 +227,8 @@ public final class CameraManager {
         return null;
       }
 
+      //int width = findDesiredDimensionInRange(screenResolution.x, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
+      //int height = findDesiredDimensionInRange(screenResolution.y, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
 
       int width = screenResolution.x * 3/5;
       if (width < MIN_FRAME_WIDTH) {
