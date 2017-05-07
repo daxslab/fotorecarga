@@ -14,6 +14,17 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            applicationVariants.all { variant ->
+                variant.outputs.each { output ->
+                    project.ext { appName = 'FotoRecarga' }
+//                    def formattedDate = new Date().format('yyyyMMddHHmmss')
+                    def newName = output.outputFile.name
+                    newName = newName.replace("app-", "$project.ext.appName-")
+                    newName = newName.replace("-release", "-" + "$versionName")
+                    //noinspection GroovyAssignabilityCheck
+                    output.outputFile = new File(output.outputFile.parent, newName)
+                }
+            }
         }
     }
     productFlavors {
