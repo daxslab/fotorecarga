@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/android-iconify/android-iconify.iml" filepath="$PROJECT_DIR$/android-iconify/android-iconify.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android-iconify-fontawesome/android-iconify-fontawesome.iml" filepath="$PROJECT_DIR$/android-iconify-fontawesome/android-iconify-fontawesome.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/fotorecarga.iml" filepath="$PROJECT_DIR$/fotorecarga.iml" />
-      <module fileurl="file://$PROJECT_DIR$/tess-two/tess-two.iml" filepath="$PROJECT_DIR$/tess-two/tess-two.iml" />
     </modules>
   </component>
 </project>
