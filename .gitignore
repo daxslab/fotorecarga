@@ -1,8 +1,9 @@
+
 # Built application files
 *.apk
 *.ap_
 
-# Files for the Dalvik VM
+# Files for the ART/Dalvik VM
 *.dex
 
 # Java class files
@@ -11,10 +12,15 @@
 # Generated files
 bin/
 gen/
+out/
 
 # Gradle files
+.gradle
 .gradle/
 build/
+
+# Signing files
+.signing/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -25,16 +31,100 @@ proguard/
 # Log Files
 *.log
 
-# Android Studio Navigation editor temp files
-.navigation/
-
-# Android Studio captures folder
+# Android Studio
+/*/build/
+/*/local.properties
+/*/out
+/*/*/build
+/*/*/production
 captures/
+.navigation/
+*.ipr
+*~
+*.swp
 
-/local.properties
+# Android Patch
+gen-external-apklibs
 
-/.idea/workspace.xml
+# External native build folder generated in Android Studio 2.2 and later
+.externalNativeBuild
 
-/.idea/libraries
+# NDK
+obj/
 
+# IntelliJ IDEA
+*.iml
+*.iws
+/out/
+
+# User-specific configurations
+.idea/libraries/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/.name
+.idea/compiler.xml
+.idea/copyright/profiles_settings.xml
+.idea/encodings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/scopes/scope_settings.xml
+.idea/dictionaries
+.idea/vcs.xml
+.idea/jsLibraryMappings.xml
+.idea/datasources.xml
+.idea/dataSources.ids
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+
+# Keystore files
+*.jks
+
+# OS-specific files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Legacy Eclipse project files
+.classpath
+.project
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs (Reference: http://www.java.com/en/download/help/error_hotspot.xml)
+hs_err_pid*
+
+## Plugin-specific files:
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Mongo Explorer plugin
+.idea/mongoSettings.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+### AndroidStudio Patch ###
+# Google Services plugin
+google-services.json
+
+!/gradle/wrapper/gradle-wrapper.jar
+
+# End of https://www.gitignore.io/api/androidstudio
