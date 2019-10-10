@@ -8,7 +8,7 @@ android {
         minSdkVersion 13
         targetSdkVersion 22
         versionCode 2
-        versionName '1.1'
+        versionName '1.2'
     }
     buildTypes {
         release {
@@ -36,5 +36,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.android.support:design:25.1.0'
     compile 'com.joanzapata.iconify:android-iconify-fontawesome:2.2.2'
-    compile 'com.rmtheis:tess-two:6.3.0'
+    compile 'com.rmtheis:tess-two:9.0.0'
 }
